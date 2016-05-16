@@ -24,9 +24,15 @@ defmodule TodoList do
       nil -> todo_list
 
       entry ->
-        new_entry = update_fun.(entry)
+        old_id = entry.id
+        new_entry = %{id: ^old_id} = update_fun.(entry)
         new_entries = %{entries | entry_id => new_entry}
         %{todo_list | entries: new_entries}
     end
+  end
+
+  def delete(todo_list = %TodoList{entries: entries}, entry_id) do
+    new_entries = Map.delete(entries, entry_id)
+    %{todo_list | entries: new_entries}
   end
 end
