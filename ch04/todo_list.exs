@@ -41,3 +41,32 @@ defmodule TodoList do
     %{todo_list | entries: new_entries}
   end
 end
+
+defmodule TodoList.CsvImporter do
+  def import(path) do
+    read_contents(path)
+    |> String.split("\n")
+    |> Stream.reject(&(&1 == ""))
+    |> Stream.map(&String.split(&1, ","))
+    |> Stream.map(&(list_to_map/1))
+    |> Enum.to_list
+    |> TodoList.new
+  end
+
+  defp date_string_to_date_tuple(date) when is_binary(date) do
+    date
+    |> String.split("/")
+    |> Enum.map(&String.to_integer/1)
+    |> Enum.reduce({}, &Tuple.append(&2, &1))
+  end
+
+  defp list_to_map([date, title]) do
+    date = date_string_to_date_tuple(date)
+    %{date: date, title: title}
+  end
+
+  defp read_contents(path) do
+    {:ok, contents} = File.read(path)
+    contents
+  end
+end
