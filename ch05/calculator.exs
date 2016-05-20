@@ -34,16 +34,43 @@ defmodule Calculator do
   # Server API #
   defp loop(current_val) do
     new_val = receive do
-      {:add, value} -> current_val + value
-      {:sub, value} -> current_val - value
-      {:mul, value} -> current_val * value
-      {:div, value} -> Kernel.div(current_val, value)
-      {:val, caller} -> send(caller, {:cal_val, current_val})
-      invalid_req ->
-        IO.puts "Invalid request: #{inspect invalid_req}"
-        current_val
+      msg -> process_msg(msg, current_val)
+      # {:add, value} -> current_val + value
+      # {:sub, value} -> current_val - value
+      # {:mul, value} -> current_val * value
+      # {:div, value} -> Kernel.div(current_val, value)
+      # {:val, caller} -> send(caller, {:cal_val, current_val})
+      # invalid_req ->
+      #   IO.puts "Invalid request: #{inspect invalid_req}"
+      #   current_val
     end
 
     loop(new_val)
+  end
+
+  defp process_msg({:val, caller}, current_val) do
+    send(caller, {:cal_val, current_val})
+    current_val
+  end
+
+  defp process_msg({:add, val}, current_val) do
+    current_val + val
+  end
+
+  defp process_msg({:sub, val}, current_val) do
+    current_val - val
+  end
+
+  defp process_msg({:mul, val}, current_val) do
+    current_val * val
+  end
+
+  defp process_msg({:div, val}, current_val) do
+    Kernel.div(current_val, val)
+  end
+
+  defp process_msg(msg, current_val) do
+    IO.puts "Invalid msg: #{inspect msg}"
+    current_val
   end
 end
