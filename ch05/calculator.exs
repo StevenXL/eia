@@ -21,6 +21,10 @@ defmodule Calculator do
 
   def value(server) do
     send(server, {:val, self})
+
+    receive do
+      {:cal_val, val} -> val
+    end
   end
 
   def div(server, val) do
