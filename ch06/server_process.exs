@@ -26,6 +26,24 @@ defmodule ServerProcess do
 end
 
 defmodule KeyValueStore do
+  # Client API #
+  def start do
+    ServerProcess.start(KeyValueStore)
+  end
+
+  def get_all(server) do
+    ServerProcess.call(server, :all)
+  end
+
+  def get(server, key) do
+    ServerProcess.call(server, {:get, key})
+  end
+
+  def put(server, key, value) do
+    ServerProcess.call(server, {:put, key, value})
+  end
+
+  # Server API #
   def init do
     %{}
   end
