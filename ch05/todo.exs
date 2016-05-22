@@ -10,6 +10,13 @@ defmodule TodoServer do
     send(server, {:add_entry, entry})
   end
 
+  def entries(server) do
+    send(server, {:entries, self()})
+    receive do
+      {:entries, entries} -> entries
+    end
+  end
+
   def entries(server, date = {_, _, _}) do
     send(server, {:entries, self(), date})
     receive do
@@ -20,18 +27,38 @@ defmodule TodoServer do
   # Server API #
   defp loop(state) do
     new_state = receive do
-      {:add_entry, entry = %{}} -> TodoList.add_entry(state, entry)
-      {:delete, entry_id} -> TodoList.delete(state, entry_id)
-      {:update_entry, entry_id, update_fun} -> TodoList.update_entry(state, entry_id, update_fun)
-      {:entries, caller, date = {_, _, _}} ->
-        entries = TodoList.entries(state, date)
-        send(caller, {:entries, entries})
-        state
-      invalid ->
-        IO.puts "Invalid Msg Received: #{inspect invalid}"
+      msg -> process_msg(msg, state)
     end
 
     loop(new_state)
+  end
+
+  defp process_msg({:add_entry, entry = %{}}, state) do
+    TodoList.add_entry(state, entry)
+  end
+
+  defp process_msg({:delete, entry_id}, state) do
+    TodoList.delete(state, entry_id)
+  end
+
+  defp process_msg({:update_entry, entry_id, update_fun}, state) do
+    TodoList.update_entry(state, entry_id, update_fun)
+  end
+
+  defp process_msg({:entries, caller}, state) do
+    entries = Enum.map(state.entries, &(elem(&1, 1)))
+    send(caller, {:entries, entries})
+    state
+  end
+
+  defp process_msg({:entries, caller, date = {_, _, _}}, state) do
+    entries = TodoList.entries(state, date)
+    send(caller, {:entries, entries})
+    state
+  end
+
+  defp process_msg(msg, _) do
+    IO.puts "Unknown message received: #{inspect msg}"
   end
 end
 
