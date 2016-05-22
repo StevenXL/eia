@@ -1,10 +1,14 @@
 defmodule ServerProcess do
   def call(server, msg) do
-    send(server, {:request, self(), msg})
+    send(server, {:call, self(), msg})
 
     receive do
       {:response, response} -> response
     end
+  end
+
+  def cast(server, msg) do
+    send(server, {:cast, msg})
   end
 
   def start(callback_module) do
@@ -16,9 +20,12 @@ defmodule ServerProcess do
 
   defp loop(callback_module, state) do
     receive do
-      {:request, caller, msg} ->
-        {response, new_state} = callback_module.process_msg(msg, state)
+      {:call, caller, msg} ->
+        {response, new_state} = callback_module.process_call(msg, state)
         send(caller, {:response, response})
+        loop(callback_module, new_state)
+      {:cast, msg} ->
+        new_state = callback_module.process_cast(msg, state)
         loop(callback_module, new_state)
       _ -> loop(callback_module, state)
     end
@@ -40,7 +47,7 @@ defmodule KeyValueStore do
   end
 
   def put(server, key, value) do
-    ServerProcess.call(server, {:put, key, value})
+    ServerProcess.cast(server, {:put, key, value})
   end
 
   # Server API #
@@ -48,7 +55,7 @@ defmodule KeyValueStore do
     %{}
   end
 
-  def process_msg({:get, key}, state) do
+  def process_call({:get, key}, state) do
     response = case Map.get(state, key, nil) do
       nil -> {:error, :unkown_key}
       value -> {:ok, value}
@@ -57,16 +64,15 @@ defmodule KeyValueStore do
     {response, state}
   end
 
-  def process_msg({:put, key, value}, state) do
-    new_state = Map.put(state, key, value)
-    {:ok, new_state}
-  end
-
-  def process_msg(:all, state) do
+  def process_call(:all, state) do
     {state, state}
   end
 
-  def process_msg(_, state) do
+  def process_call(_, state) do
     {:unknown_msg, state}
+  end
+
+  def process_cast({:put, key, value}, state) do
+    Map.put(state, key, value)
   end
 end
