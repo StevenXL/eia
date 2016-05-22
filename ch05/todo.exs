@@ -1,3 +1,40 @@
+defmodule TodoServer do
+  # Client API #
+  def start do
+    spawn(fn() ->
+      loop(TodoList.new)
+    end)
+  end
+
+  def add_entry(server, entry = %{date: {_, _, _}, title: _}) do
+    send(server, {:add_entry, entry})
+  end
+
+  def entries(server, date = {_, _, _}) do
+    send(server, {:entries, self(), date})
+    receive do
+      {:entries, entries} -> entries
+    end
+  end
+
+  # Server API #
+  defp loop(state) do
+    new_state = receive do
+      {:add_entry, entry = %{}} -> TodoList.add_entry(state, entry)
+      {:delete, entry_id} -> TodoList.delete(state, entry_id)
+      {:update_entry, entry_id, update_fun} -> TodoList.update_entry(state, entry_id, update_fun)
+      {:entries, caller, date = {_, _, _}} ->
+        entries = TodoList.entries(state, date)
+        send(caller, {:entries, entries})
+        state
+      invalid ->
+        IO.puts "Invalid Msg Received: #{inspect invalid}"
+    end
+
+    loop(new_state)
+  end
+end
+
 defmodule TodoList do
   defstruct auto_id: 1, entries: Map.new
 
