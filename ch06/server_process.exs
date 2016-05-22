@@ -78,49 +78,51 @@ defmodule KeyValueStore do
 end
 
 defmodule TodoServer do
+  use GenServer
   # Client API #
 
   def start do
-    ServerProcess.start(TodoServer)
+    GenServer.start(__MODULE__, nil)
   end
 
   def add_entry(server, entry = %{date: _, title: _}) do
-    ServerProcess.cast(server, {:add_entry, entry})
+    GenServer.cast(server, {:add_entry, entry})
   end
 
   def entries(server, date = {_, _, _}) do
-    ServerProcess.call(server, {:entries, date})
+    GenServer.call(server, {:entries, date})
   end
 
   def delete(server, id) do
-    ServerProcess.cast(server, {:delete, id})
+    GenServer.cast(server, {:delete, id})
   end
 
   def update(server, id, fun) do
-    ServerProcess.cast(server, {:update, id, fun})
+    GenServer.cast(server, {:update, id, fun})
   end
 
   # Server API #
 
-  def init do
-    TodoList.new
+  def init(_) do
+    {:ok, TodoList.new}
   end
 
-  def process_cast({:add_entry, entry}, todo_list) do
-    TodoList.add_entry(todo_list, entry)
+  def handle_call({:entries, date}, _from, todo_list) do
+    entries = TodoList.entries(todo_list, date)
+
+    {:reply, entries, todo_list}
   end
 
-  def process_cast({:delete, id}, todo_list) do
-    TodoList.delete(todo_list, id)
+  def handle_cast({:add_entry, entry}, todo_list) do
+    {:noreply, TodoList.add_entry(todo_list, entry)}
   end
 
-  def process_cast({:update, id, fun}, todo_list) do
-    TodoList.update(todo_list, id, fun)
+  def handle_cast({:delete, id}, todo_list) do
+    {:noreply, TodoList.delete(todo_list, id)}
   end
 
-  def process_call({:entries, date}, todo_list) do
-    new_state = TodoList.entries(todo_list, date)
-    {new_state, todo_list}
+  def handle_cast({:update, id, fun}, todo_list) do
+    {:noreply, TodoList.update(todo_list, id, fun)}
   end
 end
 
