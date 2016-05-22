@@ -1,25 +1,29 @@
 defmodule TodoServer do
   # Client API #
   def start do
-    spawn(fn() ->
+    pid = spawn(fn() ->
       loop(TodoList.new)
     end)
+
+    Process.register(pid, :todo_server)
+
+    pid
   end
 
-  def add_entry(server, entry = %{date: {_, _, _}, title: _}) do
-    send(server, {:add_entry, entry})
+  def add_entry(entry = %{date: {_, _, _}, title: _}) do
+    send(:todo_server, {:add_entry, entry})
   end
 
-  def entries(server) do
-    send(server, {:entries, self()})
+  def entries do
+    send(:todo_server, {:entries, self()})
     receive do
       {:entries, entries} -> entries
     after 5000 -> {:error, :timeout}
     end
   end
 
-  def entries(server, date = {_, _, _}) do
-    send(server, {:entries, self(), date})
+  def entries(date = {_, _, _}) do
+    send(:todo_server, {:entries, self(), date})
     receive do
       {:entries, entries} -> entries
     after 5000 -> {:error, :timeout}
