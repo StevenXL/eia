@@ -14,6 +14,7 @@ defmodule TodoServer do
     send(server, {:entries, self()})
     receive do
       {:entries, entries} -> entries
+    after 5000 -> {:error, :timeout}
     end
   end
 
@@ -21,6 +22,7 @@ defmodule TodoServer do
     send(server, {:entries, self(), date})
     receive do
       {:entries, entries} -> entries
+    after 5000 -> {:error, :timeout}
     end
   end
 
