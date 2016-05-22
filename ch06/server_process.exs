@@ -33,47 +33,47 @@ defmodule ServerProcess do
 end
 
 defmodule KeyValueStore do
+  use GenServer
+
   # Client API #
   def start do
-    ServerProcess.start(KeyValueStore)
+    GenServer.start(__MODULE__, nil)
   end
 
   def get_all(server) do
-    ServerProcess.call(server, :all)
+    GenServer.call(server, :get_all)
   end
 
   def get(server, key) do
-    ServerProcess.call(server, {:get, key})
+    GenServer.call(server, {:get, key})
   end
 
   def put(server, key, value) do
-    ServerProcess.cast(server, {:put, key, value})
+    GenServer.cast(server, {:put, key, value})
   end
 
   # Server API #
-  def init do
-    %{}
+  def init(_) do
+    {:ok, %{}}
   end
 
-  def process_call({:get, key}, state) do
+  def handle_call(:get_all, _from, state) do
+    {:reply, state, state}
+  end
+
+  def handle_call({:get, key}, _from, state) do
     response = case Map.get(state, key, nil) do
-      nil -> {:error, :unkown_key}
-      value -> {:ok, value}
+      nil -> {:error, :unknown_key}
+      key -> {:ok, key}
     end
 
-    {response, state}
+    {:reply, response, state}
   end
 
-  def process_call(:all, state) do
-    {state, state}
-  end
+  def handle_cast({:put, key, value}, state) do
+    new_state = Map.put(state, key, value)
 
-  def process_call(_, state) do
-    {:unknown_msg, state}
-  end
-
-  def process_cast({:put, key, value}, state) do
-    Map.put(state, key, value)
+    {:noreply, new_state}
   end
 end
 
