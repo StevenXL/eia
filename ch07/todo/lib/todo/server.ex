@@ -25,7 +25,7 @@ defmodule Todo.Server do
   # Server API #
 
   def init(name) do
-    {:ok, {name, Todo.List.new}}
+    {:ok, {name, Todo.Database.retrieve(name) || Todo.List.new}}
   end
 
   def handle_call({:entries, date}, _from, state = {_, todo_list}) do
