@@ -23,7 +23,7 @@ defmodule Todo.Database do
 
   def handle_call({:retrieve, key}, _from, folder) do
     data = case File.read(file_name(folder, key)) do
-      {:ok, contents} -> contents
+      {:ok, contents} -> :erlang.binary_to_term(contents)
       _ -> nil
     end
 
