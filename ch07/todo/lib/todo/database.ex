@@ -34,7 +34,7 @@ defmodule Todo.Database do
     file_name(folder, key)
     |> File.write!(:erlang.term_to_binary(data))
 
-    {:ok, folder}
+    {:noreply, folder}
   end
 
   # Helper Functions #
