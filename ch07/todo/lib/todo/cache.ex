@@ -12,6 +12,7 @@ defmodule Todo.Cache do
 
   # Server API #
   def init(_) do
+    Todo.Database.start("./persist")
     {:ok, %{}}
   end
 
