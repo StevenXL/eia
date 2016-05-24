@@ -7,38 +7,39 @@ defmodule Todo.Database do
   end
 
   def store(key, data) do
-    GenServer.cast(:db, {:store, key, data})
+    key
+    |> get_worker
+    |> Todo.DatabaseWorker.store(key, data)
   end
 
   def retrieve(key) do
-    GenServer.call(:db, {:retrieve, key})
+    key
+    |> get_worker
+    |> Todo.DatabaseWorker.retrieve(key)
   end
 
   # Server API #
 
   def init(folder) when is_binary(folder) do
-    File.mkdir_p(folder)
-    {:ok, folder}
+    {:ok, start_workers(folder)}
   end
 
-  def handle_call({:retrieve, key}, _from, folder) do
-    data = case File.read(file_name(folder, key)) do
-      {:ok, contents} -> :erlang.binary_to_term(contents)
-      _ -> nil
-    end
-
-    {:reply, data, folder}
-  end
-
-  def handle_cast({:store, key, data}, folder) do
-    file_name(folder, key)
-    |> File.write!(:erlang.term_to_binary(data))
-
-    {:noreply, folder}
+  def handle_call({:get_worker, key}, _from, workers) do
+    worker = Enum.at(workers, :erlang.phash2(key, 3))
+    {:reply, worker, workers}
   end
 
   # Helper Functions #
-  defp file_name(folder, key) do
-    "#{folder}/#{key}"
+
+  defp get_worker(key) do
+    GenServer.call(:db, {:get_worker, key})
+  end
+
+  defp start_workers(folder) when is_binary(folder) do
+    1..3
+    |> Enum.map(fn(_) ->
+      {:ok, pid} = Todo.DatabaseWorker.start(folder)
+      pid
+    end)
   end
 end
