@@ -2,8 +2,8 @@ defmodule Todo.Server do
   use GenServer
   # Client API #
 
-  def start(name) do
-    GenServer.start(__MODULE__, name)
+  def start_link(name) do
+    GenServer.start_link(__MODULE__, name)
   end
 
   def add_entry(server, entry = %{date: _, title: _}) do
@@ -25,7 +25,7 @@ defmodule Todo.Server do
   # Server API #
 
   def init(name) do
-    IO.puts "Initializing the Todo.Server with: #{IO.inspect name}"
+    IO.puts "Initializing the Todo.Server"
 
     {:ok, {name, Todo.Database.retrieve(name) || Todo.List.new}}
   end

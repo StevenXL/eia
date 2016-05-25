@@ -14,14 +14,14 @@ defmodule Todo.Cache do
   def init(_) do
     IO.puts "Initializing the Todo.Cache server"
 
-    Todo.Database.start("./persist")
+    Todo.Database.start_link("./persist")
     {:ok, %{}}
   end
 
   def handle_call({:todo_pid, name}, _from, state) do
     case Map.get(state, name, nil) do
       nil ->
-        {:ok, todo_pid} = Todo.Server.start(name)
+        {:ok, todo_pid} = Todo.Server.start_link(name)
         new_state = Map.put(state, name, todo_pid)
         {:reply, todo_pid, new_state}
       todo_pid -> {:reply, todo_pid, state}

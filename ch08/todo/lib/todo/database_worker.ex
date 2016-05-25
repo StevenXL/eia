@@ -2,8 +2,8 @@ defmodule Todo.DatabaseWorker do
   use GenServer
 
   # Client API #
-  def start(folder) do
-    GenServer.start(__MODULE__, folder)
+  def start_link(folder) do
+    GenServer.start_link(__MODULE__, folder)
   end
 
   def store(server, key, data) do
@@ -17,7 +17,8 @@ defmodule Todo.DatabaseWorker do
   # Server API #
 
   def init(folder) when is_binary(folder) do
-    IO.puts "Initializing the Todo.DatabaseWorker with: #{IO.inspect folder}"
+    IO.puts "Initializing the Todo.DatabaseWorker"
+
     {:ok, folder}
   end
 

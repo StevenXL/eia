@@ -2,8 +2,8 @@ defmodule Todo.Database do
   use GenServer
 
   # Client API #
-  def start(folder) do
-    GenServer.start(__MODULE__, folder, name: :db)
+  def start_link(folder) do
+    GenServer.start_link(__MODULE__, folder, name: :db)
   end
 
   def store(key, data) do
@@ -21,7 +21,7 @@ defmodule Todo.Database do
   # Server API #
 
   def init(folder) when is_binary(folder) do
-    IO.puts "Initializing the Todo.Database server with: #{IO.inspect folder}"
+    IO.puts "Initializing the Todo.Database"
 
     {:ok, start_workers(folder)}
   end
@@ -40,7 +40,7 @@ defmodule Todo.Database do
   defp start_workers(folder) when is_binary(folder) do
     1..3
     |> Enum.map(fn(_) ->
-      {:ok, pid} = Todo.DatabaseWorker.start(folder)
+      {:ok, pid} = Todo.DatabaseWorker.start_link(folder)
       pid
     end)
   end

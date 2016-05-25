@@ -10,11 +10,10 @@ defmodule Todo.Supervisor do
   # Server API #
   def init(_) do
     IO.puts "Initializing Todo.Supervisor"
+
     processes = [
       worker(Todo.Cache, [])
     ]
-
-    IO.inspect processes
 
     supervise(processes, strategy: :one_for_one)
   end
