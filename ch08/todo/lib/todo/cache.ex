@@ -12,6 +12,8 @@ defmodule Todo.Cache do
 
   # Server API #
   def init(_) do
+    IO.puts "Initializing the Todo.Cache server"
+
     Todo.Database.start("./persist")
     {:ok, %{}}
   end
@@ -25,6 +27,4 @@ defmodule Todo.Cache do
       todo_pid -> {:reply, todo_pid, state}
     end
   end
-
-  # Helper Functions #
 end

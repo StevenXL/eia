@@ -25,6 +25,8 @@ defmodule Todo.Server do
   # Server API #
 
   def init(name) do
+    IO.puts "Initializing the Todo.Server with: #{IO.inspect name}"
+
     {:ok, {name, Todo.Database.retrieve(name) || Todo.List.new}}
   end
 

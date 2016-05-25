@@ -21,6 +21,8 @@ defmodule Todo.Database do
   # Server API #
 
   def init(folder) when is_binary(folder) do
+    IO.puts "Initializing the Todo.Database server with: #{IO.inspect folder}"
+
     {:ok, start_workers(folder)}
   end
 
