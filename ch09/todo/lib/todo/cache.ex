@@ -13,8 +13,6 @@ defmodule Todo.Cache do
   # Server API #
   def init(_) do
     IO.puts "Initializing the Todo.Cache server"
-
-    Todo.Database.start_link("./persist")
     {:ok, %{}}
   end
 
