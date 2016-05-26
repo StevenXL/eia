@@ -51,5 +51,13 @@ defmodule Todo.ProcessRegistry do
     {:noreply, Map.delete(registry, moniker)}
   end
 
+  def handle_info({:DOWN, ref, pid, _error}, registry) do
+    {:noreply, Map.delete(registry, moniker)}
+  end
+
+  def handle_info(_msg, registry) do
+    {:noreply, registry}
+  end
+
   # Helper Functions #
 end
