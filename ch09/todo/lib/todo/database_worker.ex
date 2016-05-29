@@ -3,15 +3,17 @@ defmodule Todo.DatabaseWorker do
 
   # Client API #
   def start_link(folder, worker_id) do
+    IO.puts "Initializing the Todo.DatabaseWorker: #{worker_id}"
+
     GenServer.start_link(__MODULE__, folder, name: via_tuple(worker_id))
   end
 
-  def store(server, key, data) do
-    GenServer.cast(server, {:store, key, data})
+  def store(worker_id, key, data) do
+    GenServer.cast(via_tuple(worker_id), {:store, key, data})
   end
 
-  def retrieve(server, key) do
-    GenServer.call(server, {:retrieve, key})
+  def retrieve(worker_id, key) do
+    GenServer.call(via_tuple(worker_id), {:retrieve, key})
   end
 
   # Server API #
