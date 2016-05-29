@@ -37,8 +37,8 @@ defmodule Todo.ProcessRegistry do
     case Map.get(registry, moniker, nil) do
       nil ->
         Process.monitor(pid)
-        {:reply, :yes, Map.put(registry, moniker, pid}
-      moniker_taken ->
+        {:reply, :yes, Map.put(registry, moniker, pid)}
+      _other ->
         {:reply, :no, registry}
     end
   end
@@ -48,11 +48,11 @@ defmodule Todo.ProcessRegistry do
   end
 
   def handle_cast({:unregister_name, moniker}, registry) do
-    {:noreply, Map.delete(registry, moniker)}
+    {:noreply, deregister(registry, moniker)}
   end
 
-  def handle_info({:DOWN, ref, pid, _error}, registry) do
-    {:noreply, Map.delete(registry, moniker)}
+  def handle_info({:DOWN, _ref, pid, _error}, registry) do
+    {:noreply, deregister(registry, pid)}
   end
 
   def handle_info(_msg, registry) do
@@ -60,4 +60,15 @@ defmodule Todo.ProcessRegistry do
   end
 
   # Helper Functions #
+
+  defp deregister(registry, pid) when is_pid(pid) do
+    case Enum.find(registry, nil, fn({_moniker, cur_pid}) -> cur_pid == pid end) do
+      nil -> registry
+      {moniker, _pid} -> deregister(registry, moniker)
+    end
+  end
+
+  defp deregister(registry, moniker) do
+    Map.delete(registry, moniker)
+  end
 end
