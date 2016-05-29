@@ -39,8 +39,8 @@ defmodule Todo.Database do
 
   defp start_workers(folder) when is_binary(folder) do
     1..3
-    |> Enum.map(fn(_) ->
-      {:ok, pid} = Todo.DatabaseWorker.start_link(folder)
+    |> Enum.map(fn(idx) ->
+      {:ok, pid} = Todo.DatabaseWorker.start_link(folder, idx)
       pid
     end)
   end

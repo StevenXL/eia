@@ -2,8 +2,8 @@ defmodule Todo.DatabaseWorker do
   use GenServer
 
   # Client API #
-  def start_link(folder) do
-    GenServer.start_link(__MODULE__, folder)
+  def start_link(folder, worker_id) do
+    GenServer.start_link(__MODULE__, folder, name: via_tuple(worker_id))
   end
 
   def store(server, key, data) do
@@ -41,5 +41,9 @@ defmodule Todo.DatabaseWorker do
   # Helper Functions #
   defp file_name(folder, key) do
     "#{folder}/#{key}"
+  end
+
+  defp via_tuple(worker_id) do
+    {:via, Todo.ProcessRegistry, {:database_worker, worker_id}}
   end
 end
