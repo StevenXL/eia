@@ -51,7 +51,7 @@ defmodule Todo.ProcessRegistry do
     {:noreply, deregister(registry, moniker)}
   end
 
-  def handle_info({:DOWN, _ref, pid, _error}, registry) do
+  def handle_info({:DOWN, _ref, _type, pid, _reason}, registry) do
     {:noreply, deregister(registry, pid)}
   end
 

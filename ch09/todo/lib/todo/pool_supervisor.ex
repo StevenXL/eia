@@ -10,6 +10,8 @@ defmodule Todo.PoolSupervisor do
   # Server API #
 
   def init({db_folder, pool_size}) do
+    IO.puts "Starting Todo.PoolSupervisor"
+
     processes = for worker_id <- 1..pool_size do
       worker(Todo.DatabaseWorker,
        [db_folder, worker_id], # notice that these will be passed in as two arguments.
