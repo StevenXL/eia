@@ -12,7 +12,10 @@ defmodule Todo.ProcessRegistry do
   end
 
   def whereis_name(moniker) do
-    GenServer.call(:registry, {:whereis_name, moniker})
+    case :ets.lookup(:registry_table, moniker) do
+      [] -> :undefined
+      [{^moniker, pid}] -> pid
+    end
   end
 
   def unregister_name(moniker) do
@@ -30,45 +33,51 @@ defmodule Todo.ProcessRegistry do
   # Server API #
 
   def init(nil) do
-    {:ok, %{}}
+    :ets.new(:registry_table, [:set, :named_table, :protected])
+
+    {:ok, nil}
   end
 
-  def handle_call({:register_name, moniker, pid}, _from, registry) do
-    case Map.get(registry, moniker, nil) do
-      nil ->
+  def handle_call({:register_name, moniker, pid}, _from, nil) do
+    IO.inspect moniker
+    case :ets.lookup(:registry_table, moniker) do
+      [] ->
         Process.monitor(pid)
-        {:reply, :yes, Map.put(registry, moniker, pid)}
+        register(moniker, pid)
+        {:reply, :yes, nil}
       _other ->
-        {:reply, :no, registry}
+        {:reply, :no, nil}
     end
   end
 
-  def handle_call({:whereis_name, moniker}, _from, registry) do
-    {:reply, Map.get(registry, moniker, :undefined), registry}
+  def handle_cast({:unregister_name, moniker}, nil) do
+    deregister(moniker)
+    {:noreply, nil}
   end
 
-  def handle_cast({:unregister_name, moniker}, registry) do
-    {:noreply, deregister(registry, moniker)}
+  def handle_info({:DOWN, _ref, _type, pid, _reason}, nil) do
+    deregister(pid)
+    {:noreply, nil}
   end
 
-  def handle_info({:DOWN, _ref, _type, pid, _reason}, registry) do
-    {:noreply, deregister(registry, pid)}
-  end
-
-  def handle_info(_msg, registry) do
-    {:noreply, registry}
+  def handle_info(_msg, nil) do
+    {:noreply, nil}
   end
 
   # Helper Functions #
 
-  defp deregister(registry, pid) when is_pid(pid) do
-    case Enum.find(registry, nil, fn({_moniker, cur_pid}) -> cur_pid == pid end) do
-      nil -> registry
-      {moniker, _pid} -> deregister(registry, moniker)
+  defp register(moniker, pid) do
+    :ets.insert(:registry_table, {moniker, pid})
+  end
+
+  defp deregister(pid) when is_pid(pid) do
+    case :ets.match(:registry_table, {:_, pid}) do
+      [] -> nil
+      [{moniker, _pid}] -> deregister(moniker)
     end
   end
 
-  defp deregister(registry, moniker) do
-    Map.delete(registry, moniker)
+  defp deregister(moniker) do
+    :ets.delete(:registry_table, moniker)
   end
 end
