@@ -29,7 +29,7 @@ defmodule Todo.Server do
   # Server API #
 
   def init(name) do
-    IO.puts "Initializing the Todo.Server"
+    IO.puts "Initializing the Todo.Server: #{name}"
 
     {:ok, {name, Todo.Database.retrieve(name) || Todo.List.new}}
   end

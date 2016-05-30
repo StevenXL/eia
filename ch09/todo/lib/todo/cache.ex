@@ -7,7 +7,10 @@ defmodule Todo.Cache do
   end
 
   def server_process(name) do
-    GenServer.call(:cache, {:todo_pid, name})
+    case Todo.ProcessRegistry.whereis_name({:todo_server, name}) do
+      :undefined -> GenServer.call(:cache, {:todo_pid, name})
+      pid -> pid
+    end
   end
 
   # Server API #
@@ -19,7 +22,7 @@ defmodule Todo.Cache do
   def handle_call({:todo_pid, name}, _from, state) do
     case Map.get(state, name, nil) do
       nil ->
-        {:ok, todo_pid} = Todo.Server.start_link(name)
+        {:ok, todo_pid} = Todo.ServerSupervisor.start_child(name)
         new_state = Map.put(state, name, todo_pid)
         {:reply, todo_pid, new_state}
       todo_pid -> {:reply, todo_pid, state}
