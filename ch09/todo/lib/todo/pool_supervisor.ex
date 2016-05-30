@@ -12,7 +12,7 @@ defmodule Todo.PoolSupervisor do
   def init({db_folder, pool_size}) do
     processes = for worker_id <- 1..pool_size do
       worker(Todo.DatabaseWorker,
-       [db_folder, pool_size], # notice that these will be passed in as two arguments.
+       [db_folder, worker_id], # notice that these will be passed in as two arguments.
        id: {:database_worker, worker_id}) # this is used internally
     end
 

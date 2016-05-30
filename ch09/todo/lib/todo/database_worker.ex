@@ -19,8 +19,6 @@ defmodule Todo.DatabaseWorker do
   # Server API #
 
   def init(folder) when is_binary(folder) do
-    IO.puts "Initializing the Todo.DatabaseWorker"
-
     {:ok, folder}
   end
 

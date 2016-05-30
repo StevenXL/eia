@@ -12,8 +12,9 @@ defmodule Todo.Supervisor do
     IO.puts "Initializing Todo.Supervisor"
 
     processes = [
+      worker(Todo.ProcessRegistry, []),
+      supervisor(Todo.Database, ["./persist"]),
       worker(Todo.Cache, []),
-      worker(Todo.Database, ["./persist"])
     ]
 
     supervise(processes, strategy: :one_for_one)
