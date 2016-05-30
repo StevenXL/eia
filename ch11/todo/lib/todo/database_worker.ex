@@ -19,6 +19,8 @@ defmodule Todo.DatabaseWorker do
   # Server API #
 
   def init(folder) when is_binary(folder) do
+    File.mkdir_p(folder)
+
     {:ok, folder}
   end
 
