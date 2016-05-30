@@ -3,7 +3,7 @@ defmodule Todo.Server do
   # Client API #
 
   def start_link(name) do
-    GenServer.start_link(__MODULE__, name)
+    GenServer.start_link(__MODULE__, name, name: via_tuple(name))
   end
 
   def add_entry(server, entry = %{date: _, title: _}) do
@@ -20,6 +20,10 @@ defmodule Todo.Server do
 
   def update(server, id, fun) do
     GenServer.cast(server, {:update, id, fun})
+  end
+
+  def whereis(name) do
+    Todo.ProcessRegistry.whereis_name({:todo_server, name})
   end
 
   # Server API #
@@ -57,5 +61,9 @@ defmodule Todo.Server do
   # Helper Functions #
   defp persist({name, todo_list}) do
     Todo.Database.store(name, todo_list)
+  end
+
+  defp via_tuple(name) do
+    {:via, Todo.ProcessRegistry, {:todo_server, name}}
   end
 end
